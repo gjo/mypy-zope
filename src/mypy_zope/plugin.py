@@ -26,6 +26,7 @@ from mypy.plugin import (
     AttributeContext,
     ClassDefContext,
     SymbolTableNode,
+    DynamicClassDefContext,
 )
 from mypy.semanal import SemanticAnalyzerPass2
 from mypy.mro import merge, MroError
@@ -325,6 +326,12 @@ class ZopeInterfacePlugin(Plugin):
             return analyze_interface_base
 
         return analyze
+
+    def get_dynamic_class_hook(self, fullname: str
+                               ) -> Optional[Callable[[DynamicClassDefContext], None]]:
+        # print(f"get_dynamic_class_hook: {fullname}")
+        return None
+
 
     def _is_subclass(self, typ: Type, classname: str) -> bool:
         if not isinstance(typ, Instance):
