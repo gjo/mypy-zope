@@ -27,6 +27,11 @@ if __name__ == '__main__':
 
 """
 <output>
-not_fully_implemented.py:21: error: Cannot instantiate abstract class 'Something' with abstract attribute 'hello'
+not_fully_implemented.py:11: error: __main__.Something is not a valid implementation of __main__.ISomething
+not_fully_implemented.py:11: note: 'Something' is missing following 'ISomething' protocol member:
+not_fully_implemented.py:11: note:     hello
+not_fully_implemented.py:22: error: Argument 1 to "run" has incompatible type "Something"; expected "ISomething"
+not_fully_implemented.py:22: note: 'Something' is missing following 'ISomething' protocol member:
+not_fully_implemented.py:22: note:     hello
 </output>
 """

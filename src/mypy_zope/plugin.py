@@ -13,6 +13,7 @@ from mypy.types import (
     AnyType,
     TypeOfAny,
 )
+from mypy.subtypes import is_subtype
 from mypy.checker import TypeChecker, is_false_literal
 from mypy.nodes import TypeInfo
 from mypy.plugin import (
@@ -28,9 +29,6 @@ from mypy.plugin import (
     SymbolTableNode,
     DynamicClassDefContext,
 )
-from mypy.semanal import SemanticAnalyzerPass2
-from mypy.mro import merge, MroError
-from mypy.options import Options
 
 from mypy.nodes import (
     Decorator,
@@ -103,8 +101,6 @@ class ZopeInterfacePlugin(Plugin):
     ) -> Optional[Callable[[FunctionContext], Type]]:
         # print(f"get_function_hook: {fullname}")
         def analyze(function_ctx: FunctionContext) -> Type:
-            # strtype = function_ctx.api.named_generic_type('builtins.str', [])
-            # optstr = function_ctx.api.named_generic_type('typing.Optional', [strtype])
             api = function_ctx.api
             deftype = function_ctx.default_return_type
 
@@ -197,7 +193,6 @@ class ZopeInterfacePlugin(Plugin):
                 )
                 return
 
-            # print("CLASS INFO", class_info)
             md = self._get_metadata(class_info)
             if "implements" not in md:
                 md["implements"] = []
@@ -276,7 +271,10 @@ class ZopeInterfacePlugin(Plugin):
             # Create fake constructor to mimic adaptation signature
             info = classdef_ctx.cls.info
             api = classdef_ctx.api
-            if "__init__" in info.names:
+            info.is_protocol = True
+            info.runtime_protocol = True
+            info.is_not_instantiatable = False
+            if '__init__' in info.names:
                 # already patched
                 return
 
@@ -393,40 +391,20 @@ class ZopeInterfacePlugin(Plugin):
         api: SemanticAnalyzerPluginInterface,
     ) -> None:
         info = cls.info
+        impl_type = Instance(info, [], line=info.line, column=info.column)
 
-        # Make inteface a superclass of implementation
-        seqs = [info.mro]
         for iface_expr in iface_exprs:
             stn = api.lookup_fully_qualified_or_none(iface_expr)
-            if stn is None:
+            if stn is None or stn.node is None:
                 continue
-            self.log(f"Adding {iface_expr} to MRO of {info.fullname()}")
-            iface_mro = cast(TypeInfo, stn.node).mro
-            # We always want 'object' base class to go before any interface in
-            # the MRO. This is because Interface defines its special
-            # constructor to support adapter pattern (IInterface(context)). We
-            # have to make sure default constructor for implementation still
-            # come from `object`.
-            iface_mro = [
-                info for info in iface_mro if info.fullname() != "builtins.object"
-            ]
-            seqs.append(iface_mro)
+            iface_info = stn.node
+            assert isinstance(iface_info, TypeInfo)
+            iface_type = Instance(iface_info, [],
+                                  line=info.line, column=info.column)
 
-        try:
-            info.mro = merge(seqs)
-        except MroError:
-            hierarchies = [[i.fullname() for i in s] for s in seqs]
-            api.fail(
-                f"Unable to calculate a consistent MRO: cannot merge class hierarchies:",
-                info,
-            )
-            for h in hierarchies:
-                api.fail(f"  -> {h}", info)
-
-        # XXX: Reuse abstract status checker from SemanticAnalyzerPass2.
-        # Ideally, implement a dedicated interface verifier.
-        api = cast(SemanticAnalyzerPass2, api)
-        api.calculate_abstract_status(info)
+            if not is_subtype(impl_type, iface_type):
+                api.fail(f"{impl_type} is not a valid implementation of {iface_type}", info)
+                api.msg.report_protocol_problems(impl_type, iface_type, info)
 
     def _analyze_zope_interface(
         self, api: SemanticAnalyzerPluginInterface, cls: ClassDef
@@ -435,8 +413,10 @@ class ZopeInterfacePlugin(Plugin):
         md = self._get_metadata(cls.info)
         # Even though interface is abstract, we mark it as non-abstract to
         # allow adaptation pattern: IInterface(context)
-        cls.info.is_abstract = False
-        if md.get("interface_analyzed", False):
+        cls.info.is_protocol = True
+        cls.info.runtime_protocol = True
+        cls.info.is_not_instantiatable = False
+        if md.get('interface_analyzed', False):
             return
 
         for idx, item in enumerate(cls.defs.body):

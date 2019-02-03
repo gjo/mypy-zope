@@ -11,7 +11,6 @@ class ISomething(zope.interface.Interface):
 class AbstractSomething(object):
     def thefunc(self) -> None:
         pass
-    pass
 
 @zope.interface.implementer(ISomething)
 class ConcreteSomething(object):
@@ -26,16 +25,14 @@ def main() -> None:
     smth = ISomething(ctx)
     smth.hello(2, 3)  # Error: second argument is expected to be string
 
-    asmth = AbstractSomething()  # Error, cannot instantiate abstract class
-
-    csmth = ConcreteSomething()  # Can instantiate (using default object constructor)
-
 if __name__ == '__main__':
     main()
 
 """
 <output>
-adaptation.py:27: error: Argument 2 to "hello" of "ISomething" has incompatible type "int"; expected "str"
-adaptation.py:29: error: Cannot instantiate abstract class 'AbstractSomething' with abstract attribute 'hello'
+adaptation.py:10: error: __main__.AbstractSomething is not a valid implementation of __main__.ISomething
+adaptation.py:10: note: 'AbstractSomething' is missing following 'ISomething' protocol member:
+adaptation.py:10: note:     hello
+adaptation.py:26: error: Argument 2 to "hello" of "ISomething" has incompatible type "int"; expected "str"
 </output>
 """

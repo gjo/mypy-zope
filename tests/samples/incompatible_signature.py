@@ -15,20 +15,13 @@ class Something(object):
         print(f"X: {x}, Y: {y}")
 
 
-def run(smth: ISomething):
-    smth.hello(1, "test")
-
-
-def main() -> None:
-    smth = Something()
-    run(smth)
-
-
-if __name__ == '__main__':
-    main()
-
 """
 <output>
-incompatible_signature.py:14: error: Argument 2 of "hello" incompatible with supertype "ISomething"
+incompatible_signature.py:12: error: __main__.Something is not a valid implementation of __main__.ISomething
+incompatible_signature.py:12: note: Following member(s) of "Something" have conflicts:
+incompatible_signature.py:12: note:     Expected:
+incompatible_signature.py:12: note:         def hello(self, x: int, y: str) -> None
+incompatible_signature.py:12: note:     Got:
+incompatible_signature.py:12: note:         def hello(self, x: int, y: int) -> None
 </output>
 """

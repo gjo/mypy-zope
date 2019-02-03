@@ -1,6 +1,6 @@
+from typing import Optional
 import zope.interface
 import zope.schema
-
 
 class IBookmark(zope.interface.Interface):
     cmpl = zope.schema.Complex(required=False)
@@ -9,10 +9,13 @@ class IBookmark(zope.interface.Interface):
 
 @zope.interface.implementer(IBookmark)
 class Bookmark(object):
+    cmpl: Optional[complex]
+    real: Optional[float]
+    integer: Optional[int]
     pass
 
 def main() -> None:
-    bm = Bookmark()
+    bm: IBookmark = Bookmark()
     bm.cmpl = "str"  # Error: number is expected
     bm.cmpl = complex(1, 2)
     bm.cmpl = 1.2
@@ -30,9 +33,9 @@ if __name__ == '__main__':
 
 """
 <output>
-schema_number.py:16: error: Incompatible types in assignment (expression has type "str", variable has type "Optional[complex]")
-schema_number.py:20: error: Incompatible types in assignment (expression has type "complex", variable has type "Optional[float]")
-schema_number.py:23: error: Incompatible types in assignment (expression has type "complex", variable has type "Optional[int]")
-schema_number.py:24: error: Incompatible types in assignment (expression has type "float", variable has type "Optional[int]")
+schema_number.py:19: error: Incompatible types in assignment (expression has type "str", variable has type "Optional[complex]")
+schema_number.py:23: error: Incompatible types in assignment (expression has type "complex", variable has type "Optional[float]")
+schema_number.py:26: error: Incompatible types in assignment (expression has type "complex", variable has type "Optional[int]")
+schema_number.py:27: error: Incompatible types in assignment (expression has type "float", variable has type "Optional[int]")
 </output>
 """

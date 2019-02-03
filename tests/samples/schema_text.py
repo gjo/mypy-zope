@@ -1,6 +1,6 @@
+from typing import Optional
 import zope.interface
 import zope.schema
-
 
 class IBookmark(zope.interface.Interface):
     textline = zope.schema.TextLine(
@@ -19,13 +19,15 @@ class IBookmark(zope.interface.Interface):
         description='ASCII-only text line',
         required=False)
 
-
 @zope.interface.implementer(IBookmark)
 class Bookmark(object):
-    pass
+    textline: Optional[str]
+    reqtextline: str
+    expreqtextline: str
+    asciiline: Optional[str]
 
 def main() -> None:
-    bm = Bookmark()
+    bm: IBookmark = Bookmark()
     bm.textline = 343  # Error, expected to be string
     bm.reqtextline = None  # Error, it is required
     bm.expreqtextline = None  # Error, it is required
@@ -36,9 +38,9 @@ if __name__ == '__main__':
 
 """
 <output>
-schema_text.py:29: error: Incompatible types in assignment (expression has type "int", variable has type "Optional[str]")
-schema_text.py:30: error: Incompatible types in assignment (expression has type "None", variable has type "str")
-schema_text.py:31: error: Incompatible types in assignment (expression has type "None", variable has type "str")
-schema_text.py:32: error: Incompatible types in assignment (expression has type "bool", variable has type "Optional[str]")
+schema_text.py:31: error: Incompatible types in assignment (expression has type "int", variable has type "Optional[str]")
+schema_text.py:32: error: Incompatible types in assignment (expression has type "None", variable has type "str")
+schema_text.py:33: error: Incompatible types in assignment (expression has type "None", variable has type "str")
+schema_text.py:34: error: Incompatible types in assignment (expression has type "bool", variable has type "Optional[str]")
 </output>
 """

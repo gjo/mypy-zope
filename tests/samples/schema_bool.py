@@ -1,3 +1,4 @@
+from typing import Optional
 import zope.interface
 import zope.schema
 
@@ -7,10 +8,11 @@ class IBookmark(zope.interface.Interface):
 
 @zope.interface.implementer(IBookmark)
 class Bookmark(object):
-    pass
+    # flag: Optional[bool] = False
+    flag: Optional[bool] = False
 
 def main() -> None:
-    bm = Bookmark()
+    bm: IBookmark = Bookmark()
     bm.flag = 343  # Error, expected to be boolean
     bm.flag = None
     bm.flag = True
@@ -20,6 +22,6 @@ if __name__ == '__main__':
 
 """
 <output>
-schema_bool.py:14: error: Incompatible types in assignment (expression has type "int", variable has type "Optional[bool]")
+schema_bool.py:16: error: Incompatible types in assignment (expression has type "int", variable has type "Optional[bool]")
 </output>
 """

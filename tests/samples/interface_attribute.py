@@ -10,10 +10,10 @@ class IBookmark(zope.interface.Interface):
 
 @zope.interface.implementer(IBookmark)
 class Bookmark(object):
-    pass
+    field = ""
 
 def main() -> None:
-    bm = Bookmark()
+    bm: IBookmark = Bookmark()
 
     # We can assign anything to abstract attributes
     bm.field = 343
